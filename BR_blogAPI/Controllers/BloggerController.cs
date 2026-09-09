@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.Serialization;
 using MySqlConnector;
+using BR_blogAPI.Models.DTOs;
 
 namespace BR_blogAPI.Controllers
 {
@@ -42,7 +43,7 @@ namespace BR_blogAPI.Controllers
         }
         
         [HttpPost]
-        public Blogger AddNewBlogger(Blogger blogger)
+        public Blogger AddNewBlogger(AddBloggerDTO blogger)
         {
             var connector = new MySqlConnection(ConnectionString);
             connector.Open();
@@ -71,13 +72,31 @@ namespace BR_blogAPI.Controllers
         [HttpPut]
         public object UpdateBlogger(int id, Blogger blogger)
         {
+            var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+            var sql = $"UPDATE `blogger` SET `Name`=@name,`Email`=@email,`Age`=@age,`Password`=@password WHERE Id=@id;";
+            var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@name", blogger.Name);
+            cmd.Parameters.AddWithValue("@email", blogger.Email);
+            cmd.Parameters.AddWithValue("@age", blogger.Age);
+            cmd.Parameters.AddWithValue("@password", blogger.Password);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
             return null;
         }
 
         [HttpDelete]
-        public object DeleteBlogger(int id, Blogger blogger)
+        public object DeleteBlogger(int id)
         {
-            return null;
+            var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+
+            var sql = $"DELETE FROM `blogger` WHERE Id=@id;";
+            var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue(@"id", id);
+            cmd.ExecuteNonQuery();
+            connector.Close();
+            return new { message = "Blogger sikeresen törölve" };
         }
     }
 }
