@@ -136,5 +136,62 @@ namespace BR_blogAPI.Controllers
             return blogger;
             
         }
+        [HttpGet("bloggerOwnPost")]
+        public List<object> GetBloggerWithPost(int id)
+        {
+            List<object> ownPost = new List<object>();
+            var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+            var sql = "SELECT blogger.name, blogpost.Title, blogpost.Content FROM `blogger` INNER JOIN blogpost ON blogger.id = blogpost.blogId WHERE blogger.`id` = @id;";
+            var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@id", id);
+            var dataReader = cmd.ExecuteReader();
+            while (dataReader.Read())
+            {
+                var bloggerOwnPost = new
+                {
+                    Name = dataReader.GetString(0),
+                    Title = dataReader.GetString(1),
+                    Content = dataReader.GetString(2)
+                };
+                ownPost.Add(bloggerOwnPost);
+            }
+            connector.Close();
+            return ownPost;
+        }
+        [HttpGet("NumberOfPosts")]
+        public object GetNumberOfPosts(int id)
+        {
+            var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+            var sql = "SELECT COUNT(*) FROM blogpost";
+            var cmd = new MySqlCommand(sql, connector);
+            var db = cmd.ExecuteScalar();
+            connector.Close();
+            return new { message = $"Posztok száma: {db}" };
+        }
+
+        [HttpGet("GetBloggerPostNumber")]
+        public object GetBloggerPostNumber(int id)
+        {
+            var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+
+            var sql = "SELECT blogger.name, COUNT(*) FROM `blogger` INNER JOIN blogpost on blogger.id = blogpost.blogId GROUP BY blogger.Id HAVING `Id` = @id;";
+            var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            var dataReader = cmd.ExecuteReader();
+            dataReader.Read();
+            var bloggerPostNumber = new
+            {
+                Name = dataReader.GetString(0),
+                NumberOfPosts = dataReader.GetInt32(1)
+            };
+
+            connector.Close();
+
+            return bloggerPostNumber;
+        }
     }
 }
