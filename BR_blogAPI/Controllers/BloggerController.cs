@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Runtime.Serialization;
 using MySqlConnector;
 using BR_blogAPI.Models.DTOs;
+using System.Security.Cryptography;
 
 namespace BR_blogAPI.Controllers
 {
@@ -70,19 +71,31 @@ namespace BR_blogAPI.Controllers
         }
 
         [HttpPut]
-        public object UpdateBlogger(int id, Blogger blogger)
+        public UpdateBloggerDTO UpdateBlogger([FromQuery]int id, [FromBody]UpdateBloggerDTO updateBloggerDTO)
         {
             var connector = new MySqlConnection(ConnectionString);
             connector.Open();
-            var sql = $"UPDATE `blogger` SET `Name`=@name,`Email`=@email,`Age`=@age,`Password`=@password WHERE Id=@id;";
+            
+            string sql = $"UPDATE `blogger` SET `Name`=@name,`Email`=@email,`Age`=@age,`Password`=@password WHERE Id=@id;";
             var cmd = new MySqlCommand(sql, connector);
-            cmd.Parameters.AddWithValue("@name", blogger.Name);
-            cmd.Parameters.AddWithValue("@email", blogger.Email);
-            cmd.Parameters.AddWithValue("@age", blogger.Age);
-            cmd.Parameters.AddWithValue("@password", blogger.Password);
+            cmd.Parameters.AddWithValue("@name", updateBloggerDTO.Name);
+            cmd.Parameters.AddWithValue("@email", updateBloggerDTO.Email);
+            cmd.Parameters.AddWithValue("@age", updateBloggerDTO.Age);
+            cmd.Parameters.AddWithValue("@password", updateBloggerDTO.Password);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
-            return null;
+            
+            var updatedBlogger = new UpdateBloggerDTO
+            {
+                Name = updateBloggerDTO.Name,
+                Email = updateBloggerDTO.Email,
+                Age = updateBloggerDTO.Age,
+                Password = updateBloggerDTO.Password
+            };
+
+            connector.Close();
+            return updatedBlogger;
+
         }
 
         [HttpDelete]
