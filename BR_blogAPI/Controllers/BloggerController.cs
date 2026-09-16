@@ -111,5 +111,30 @@ namespace BR_blogAPI.Controllers
             connector.Close();
             return new { message = "Blogger sikeresen törölve" };
         }
+
+        [HttpGet("byId")]
+        public object GetBloggerById(int id)
+        {
+            var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+
+            var sql = $"SELECT name, email FROM blogger WHERE Id=@id;";
+
+            var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            var dataReader = cmd.ExecuteReader();
+            dataReader.Read();
+
+            var blogger = new Blogger
+            {
+                Name = dataReader.GetString(0),
+                Email = dataReader.GetString(1)
+            };
+
+            connector.Close();
+            return blogger;
+            
+        }
     }
 }
